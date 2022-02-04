@@ -1,6 +1,12 @@
 /* DOM SELECTORS -- EVENT LISTENERS */
 const canvas = document.querySelector('#canvas')
-document.addEventListener('keydown', movementHandler)
+const pressedKeys = { }
+document.addEventListener('keydown', e => {
+    //console.log(e)
+    pressedKeys[e.key] = true
+})
+document.addEventListener('keyup', e => pressedKeys[e.key] = false) // useful for stretch goals
+// document.addEventListener('keydown', movementHandler)
 // document.addEventListener('keyup', movementHandler) // useful for stretch goals
 const movementDisplay = document.querySelector('#movement')
 
@@ -12,14 +18,14 @@ const ctx = canvas.getContext('2d')
 canvas.setAttribute('height', getComputedStyle(canvas)['height'])
 canvas.setAttribute('width', getComputedStyle(canvas)['width'])
 // setup the gameloop
-const gameLoopInterval = setInterval(gameLoop, 60) // game logic + rendering is tied to speed loop runs
+let gameLoopInterval = setInterval(gameLoop, 60) // game logic + rendering is tied to speed loop runs
 // console.log(ctx)
 
 // if you wanted the canvas size to be a static size of 800 pixels
 
 
 /* GAME FUNCTIONS */
-console.log(canvas)
+//console.log(canvas)
 
 // // set the color property of the context
 // ctx.fillStyle = 'red' // any valid css color will work
@@ -82,6 +88,7 @@ class Crawler{
         this.width = width
         this.height = height
         this.color = color
+        this.alive = true
     }
 
     // render method
@@ -99,25 +106,71 @@ const ogre = new Crawler(250, 250, 40, 50, 'green')
 function movementHandler(e) {
     //console.log(e)
     const speed = 10
+    //console.log(pressedKeys)
     // movementDisplay.innerText = "X:" + hero.x + ' ' + 'Y:' + hero.y
-    movementDisplay.innerText = `X:${hero.x} Y:${hero.y}`
+    // movementDisplay.innerText = `X:${hero.x} Y:${hero.y}`
     // conditional logic based on what key was pressed
-    if (e.key === 'a' || e.key === 'ArrowLeft') {
+    // if (e.key === 'a' || e.key === 'ArrowLeft') {
+    //     hero.x -= speed
+    // }
+    // if (e.key === 'd' || e.key === 'ArrowRight') hero.x += speed // if written on same line
+    // if (e.key === 's' || e.key === 'ArrowDown') hero.y += speed
+    // if (e.key === 'w' || e.key === 'ArrowUp') hero.y -= speed
+    if (pressedKeys.a || pressedKeys.ArrowLeft) {
         hero.x -= speed
     }
-    if (e.key === 'd' || e.key === 'ArrowRight') hero.x += speed // if written on same line
-    if (e.key === 's' || e.key === 'ArrowDown') hero.y += speed
-    if (e.key === 'w' || e.key === 'ArrowUp') hero.y -= speed
+    if (pressedKeys.e || pressedKeys.ArrowRight) hero.x += speed // if written on same line
+    if (pressedKeys.s || pressedKeys.ArrowDown) hero.y += speed
+    if (pressedKeys.w || pressedKeys.ArrowUp) hero.y -= speed
+}
+
+function detectHit() {
+    // // four conditional checks, one for every side of both boxes
+
+    // // for the hero's right side = x+width
+    // // and then ogre's left side = x
+
+    // // compare left side of ogre to the right side of hero
+    // // hero right side / ogre left side
+    // const ogreLeft = hero.x + hero.width >= ogre.x
+    //     // console.log(ogreLeft)
+    // // ogre right, hero left
+    // const ogreRight = hero.x <= ogre.x + ogre.width
+    //     // console.log(ogreRight && ogreLeft)
+    // // ogre top, hero bottom
+    // const ogreTop = hero.y + hero.height >= ogre.y
+    // // ogre bottom, hero top
+    // const ogreBottom = hero.y <= ogre.y + ogre.height
+
+    // // console.log(ogreLeft && ogreRight && ogreBottom && ogreTop)
+    if (
+        hero.x + hero.width >= ogre.x &&
+        hero.x <= ogre.x + ogre.width &&
+        hero.y + hero.height >= ogre.y &&
+        hero.y <= ogre.y + ogre.height
+    ) {
+        // hero has gotten the ogre
+        ogre.color = 'red'
+        movementDisplay.innerText = 'YOU KILLED SHREK! WHO IS THE MONSTER? THE HERO OR THE OGRE?'
+        ogre.alive = false
+        // clearInterval(gameLoopInterval)
+    }
 }
 
 function gameLoop() {
     // clear the canvas and then render
     // clear the entire canvas from top left to bottom right
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // update the objects before we render
+    movementHandler()
     // render all gameplay elements (aka the hero and ogre)
-    ogre.render()
+    if (ogre.alive) {
+        ogre.render()
+    }
     hero.render() // depending on what was rendered first, the pink box will appear under or above the green ogre
     // ogre.render()
     // add gameplay logic in here -- such as win conditions and collision detection
+    // collision detections every game render
+    detectHit()
 
 }
